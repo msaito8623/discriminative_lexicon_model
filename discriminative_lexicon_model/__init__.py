@@ -23,15 +23,17 @@ try:
     from . import measures
     from . import performance
     from . import ldl
+    from . import embedding
     from .mapping import *
     from .measures import *
     from .performance import *
     from .ldl import *
+    from .embedding import *
 except ModuleNotFoundError:
     pass
 
-__all__ = ["mapping", "measures", "performance", "ldl"]
-for _mod in (mapping, measures, performance, ldl):
+__all__ = ["mapping", "measures", "performance", "ldl", "embedding"]
+for _mod in (mapping, measures, performance, ldl, embedding):
     __all__ += getattr(_mod, "__all__", [])
 del _mod
 
