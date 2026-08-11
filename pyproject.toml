@@ -1,45 +1,58 @@
-[tool.poetry]
+[project]
 name = "discriminative_lexicon_model"
 version = "2.7.0"
 description = "Python-implementation of Discriminative Lexicon Model / Linear Discriminative Learning"
-
 license = "MIT"
-
-authors = ["Motoki Saito <motoki.saito@uni-oldenburg.de>"]
-
+authors = [{name = "Motoki Saito", email = "motoki.saito@uni-oldenburg.de"}]
 readme = "README.rst"
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "pandas>=2.2",
+    "xarray>=2023.6",
+    "fasttext>=0.9",
+    "tqdm>=4.66",
+    "setuptools>=72.1",
+    "netcdf4>=1.6.2",
+]
 
-repository = "https://github.com/quantling/discriminative_lexicon_model"
-homepage = "https://discriminative-lexicon-model.readthedocs.io/en/latest/"
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.0",
+]
+numba = [
+    "numba>=0.59",
+]
+dev = [
+    "pytest>=7.4",
+    "sphinx>=7.3",
+    "sphinx_rtd_theme>=2.0",
+]
 
-classifiers = ['Development Status :: 3 - Alpha',
-               'Environment :: Console',
-               'Intended Audience :: Science/Research',
-               'License :: OSI Approved :: MIT License',
-               'Operating System :: POSIX :: Linux',
-               'Operating System :: MacOS',
-               'Operating System :: Microsoft :: Windows',
-               'Programming Language :: Python',
-               'Programming Language :: Python :: 3.11',
-               'Programming Language :: Python :: 3 :: Only',
-               'Topic :: Scientific/Engineering']
+[project.urls]
+Homepage = "https://discriminative-lexicon-model.readthedocs.io/en/latest/"
+Repository = "https://github.com/quantling/discriminative_lexicon_model"
 
-[tool.poetry.dependencies]
-python = ">=3.11"
-numpy = ">=1.26"
-scipy = ">=1.13"
-pandas = ">=2.2"
-xarray = ">=2023.6"
-fasttext = ">=0.9"
-tqdm = ">=4.66"
-setuptools = ">=72.1"
-netcdf4 = ">=1.6.2"
+[tool.setuptools]
+include-package-data = false
 
-[tool.poetry.dev-dependencies]
-pytest = ">=7.4"
-sphinx = ">=7.3"
-sphinx_rtd_theme = ">=2.0"
+[tool.setuptools.packages.find]
+include = ["discriminative_lexicon_model*"]
+exclude = ["pyldl*", "tests*", "docs*", "build*"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
