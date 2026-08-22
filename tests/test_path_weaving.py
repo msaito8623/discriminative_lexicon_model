@@ -7,9 +7,9 @@ import pytest
 import discriminative_lexicon_model.mapping as dm
 import discriminative_lexicon_model.path_weaving as dw
 
-# This dataframe, `dat`, comes from the page 45 (i.e., "Code 3.5") of Heimeier,
-# Chuang, & Baayen (2026). It is only the first four rows of the entire dataset
-# discussed in the book.
+# This dataframe, `dat`, comes from the page 45 (i.e., "Code 3.5") of
+# Heitmeier, Chuang, & Baayen (2026). It is only the first four rows of the
+# entire dataset discussed in the book.
 dat = pd.DataFrame({'Ortho'  : ['aap', 'aard', 'aars', 'aas'],
                       'Lexeme' : ['aap', 'aard', 'aars', 'aas'],
                       'Number' : ['singular', 'singular', 'singular', 'singular'],
