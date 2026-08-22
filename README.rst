@@ -115,6 +115,7 @@ Features
 - Full DLM pipeline: cue extraction, matrix estimation, prediction, and evaluation
 - Endstate-learning, incremental learning, frequency-weighted learning
 - Incremental production via the ``produce`` algorithm (iterative cue selection with validity constraints)
+- Path weaving algorithm: selecting and ordering predicted form cues into concatenated word forms by synthesis-by-analysis
 - Linguistic measures: semantic support, functional load, production accuracy, uncertainty, vector length
 - Optional GPU acceleration via PyTorch for production and incremental learning
 - Semantic vectors from fastText embeddings or custom DataFrames
@@ -128,6 +129,7 @@ Modules
 - ``ldl``: ``LDL`` class that bundles all matrices and methods into a single model object
 - ``mapping``: core functions for cue extraction, matrix generation, production, and incremental learning
 - ``measures``: linguistic measures (semantic support, functional load, uncertainty, etc.)
+- ``path_weaving``: positional learning, path finding, and synthesis-by-analysis for production
 - ``performance``: prediction accuracy and evaluation utilities
 
 
