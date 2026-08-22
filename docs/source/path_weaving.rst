@@ -64,3 +64,16 @@ The path-weaving algorithm consists of four steps.
     ('aars', {'aap': 0.939, 'aas': 0.378, 'aars': 1.000})
 
 
+
+
+----------
+Reference
+----------
+
+    Heitmeier, M., Chuang, Y.-Y., & Baayen, R. H. (2026). *The Discriminative
+    Lexicon: Theory, Implementation in the Julia Package JudiLing, and
+    Applications*. Cambridge University Press.
+    https://doi.org/10.1017/9781009634564
+
+The path-weaving algorithm is described in its Chapter 8, "Producing Forms", on
+the pages 87--93.
