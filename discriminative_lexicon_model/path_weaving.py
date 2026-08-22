@@ -7,10 +7,10 @@ and Applications.
 
 import numpy as np
 import xarray as xr
+from .mapping import to_cues, to_ngram, infer_gram, gen_cmat, _concat_selected
 
-from .mapping import to_cues, to_ngram, infer_gram
-
-__all__ = ['cue_sequence', 'gen_amat', 'gen_mmats', 'gen_ymats', 'gen_yhats']
+__all__ = ['cue_sequence', 'gen_amat', 'gen_mmats', 'gen_ymats', 'gen_yhats',
+           'find_paths', 'select_path', 'weave']
 
 def cue_sequence (word, gram=3):
     """
@@ -121,3 +121,130 @@ def gen_yhats (chat, mmats):
         return yh
     yhats = [_gen_yhats(m, chat) for m in mmats]
     return yhats
+
+def _row (mat, word=None):
+    """
+    A utility function for an internal use. It returns one row of a matrix as a
+    numpy array, which can be selected by word or index.
+    """
+    arr = mat if isinstance(mat, np.ndarray) else np.array(mat)
+    if arr.ndim == 1:
+        row = arr
+    elif (word is None) and (arr.shape[0] == 1):
+        row = arr[0]
+    elif word is None:
+        raise ValueError('"word" is missing. "word" can be omitted only when "arr" is already a single row vector.')
+    elif isinstance(mat, xr.DataArray) and not isinstance(word, (int, np.integer)):
+        row = mat.sel({mat.dims[0]: word}).values
+    else:
+        row = arr[word]
+    return row
+
+def find_paths (chat, yhats, vmat, word=None, amat=None, threshold=0.1, max_paths=None):
+    """
+    Find possible paths for a given word.
+
+    This method identifies possible paths at each step/position. For each
+    step/position, next possible cues are selected, based on activations in the
+    C-hat vector of question (i.e., is the cue supported by the word meaning
+    strongly enough?), activations in the Y-hat of the position (i.e., is the
+    cue motivated strongly enough by the word meaning through its predicted
+    forms, given the position?), and the last cue (i.e., the next cue must be
+    legitimate continuations of the last cue). Continuation eligibility is
+    checked by the A-matrix, which permits only the transitions of cues that
+    are attested in the training data, which avoids non-word sequences.
+
+    The paths that are still growing are named "growing" and the paths that
+    reached the end (i.e., a cue with "#" at its end) get "harvested".
+
+    Returns
+    -------
+    paths : list of tuple of str
+        Each path containing a sequence of cues
+    """
+    cues = list(vmat['next'].values)
+    ch_row = _row(chat, word)
+    yh_rows = [_row(y, word) for y in yhats]
+    if amat is None:
+        v = vmat.sel(current=cues).values # Drop the initial-position row, i.e. ""
+    else:
+        v = amat.sel(current=cues, next=cues).values
+    ok = np.array(ch_row) > threshold
+    yh_rows = [y > threshold for y in yh_rows]
+    yh_rows = [ok & y for y in yh_rows]
+    candidates = [np.where(y)[0] for y in yh_rows]
+    init_cue = [i for i in candidates[0] if cues[i].startswith('#')] if candidates else []
+    def _is_final (path):
+        return len(path) > 1 and cues[path[-1]].endswith('#')
+    def _finished (paths):
+        return [ p for p in paths if _is_final(p) ]
+    def _grow (path, pos):
+        last_cue = path[-1]
+        next_possible_cues = candidates[pos] # regardless what has been chosen so far.
+        next_permitted_cues = [ j for j in next_possible_cues if v[last_cue,j] ]
+        updated_paths = [ path+(j,) for j in next_permitted_cues ]
+        return updated_paths
+    def _extend (paths, pos):
+        ongoing = [ p for p in paths if not _is_final(p) ]
+        grown = []
+        for path in ongoing: # For each candidate path.
+            grown = grown + _grow(path, pos)
+        return grown
+    growing = [ (i,) for i in init_cue ] # Paths that are still growing.
+    harvested = _finished(growing)
+    for pos in range(1, len(candidates)):
+        growing = _extend(growing, pos)
+        harvested = harvested + _finished(growing)
+        if (max_paths is not None) and (len(harvested) >= max_paths):
+            break
+    harvested = [ tuple(cues[i] for i in p) for p in harvested ]
+    return harvested
+
+def select_path (paths, gold, cmat, fmat, gram=None):
+    """
+    Synthesis-by-analysis: Decides on the winner form/path, given a set of
+    paths.
+
+    Each path gets concatenated to be a single form, which then gets mapped
+    back onto semantics. The generated semantics then gets compared to the
+    gold-standard vector. The path/form that results in the highest correlation
+    with the gold-standard vector in terms of semantics will be the winner.
+
+    Returns
+    -------
+    winner : str
+        The winning form, or '' when paths is empty.
+    corrs : dict
+        The correlations of the candidate forms with gold in semantics.
+    """
+    if len(paths) == 0:
+        return '', {}
+    cues = list(cmat[cmat.dims[1]].values)
+    if gram is None:
+        gram = infer_gram(cues)
+    forms = [_concat_selected(p, overlap=True).strip('#') for p in paths]
+    forms = list(dict.fromkeys(forms))
+    cmat_cand = cmat.sel({'word': forms})
+    shat_cand = cmat_cand @ fmat
+    gold = np.array(gold).ravel()
+    corrs = {f: float(np.corrcoef(s, gold)[0, 1]) for f, s in zip(forms, shat_cand)}
+    winner = max(corrs, key=corrs.get)
+    return winner, corrs
+
+def weave (gold, cmat, fmat, chat, yhats, vmat, word=None, amat=None,
+           threshold=0.1, gram=None):
+    """
+    A wrapper of find_paths and select_path: Produces the winner form, based on
+    the the path-weaving algorithm (Heitmeier et al., 2026).
+
+    Returns
+    -------
+    form : str
+        The winner form. The empry string when no path is found.
+    corrs : dict
+        The correlations of all candidate forms with the gold-standard semantic
+        vector.
+    """
+    paths = find_paths(chat, yhats, vmat, word=word, amat=amat, threshold=threshold)
+    form, corrs = select_path(paths, gold, cmat, fmat, gram=gram)
+    return form, corrs
