@@ -51,7 +51,7 @@ def gen_amat (words, gram=3, cues=None):
 def gen_ymats (cmat, gram=None):
     """
     Generates the positional form matrices Y_1 ... Y_n from a C-matrix,
-    following Heitmeier, Chuang, & Baayen (2018). In Y_n, the cue occupying
+    following Heitmeier, Chuang, & Baayen (2026). In Y_n, the cue occupying
     position n of a word is marked as 1 and 0 elsewhere. The number of
     matrices, i.e. the max of n, is the cue count of the longest word.
 
