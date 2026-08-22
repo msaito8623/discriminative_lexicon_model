@@ -11,3 +11,4 @@
    measures
    performance
    incremental
+   path_weaving
