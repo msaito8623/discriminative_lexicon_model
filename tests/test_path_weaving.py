@@ -132,7 +132,10 @@ class TestGenYhats:
 
 class TestFindPathsBox82:
     def setup_method (self):
-        cmat, _, _, _ = book_matrices()
+        cmat, smat, fmat, _ = book_matrices()
+        self.cmat = cmat
+        self.smat = smat
+        self.fmat = fmat
         words = cmat.word.values.tolist()
         cues = cmat.cues.values.tolist()
         self.vmat = dm.gen_vmat(cues=cues)
@@ -175,6 +178,14 @@ class TestFindPathsBox82:
         forms = self.forms(paths)
         is_boundary_free = [ ('#' not in f) for f in forms]
         assert all(is_boundary_free)
+
+    def test_synthesis_by_analysis_picks_the_target (self):
+        paths = dw.find_paths(self.chat, self.yhats, self.vmat, threshold=0.5)
+        gold = self.smat.sel(word='aap')
+        winner, corrs = dw.select_path(paths, gold, self.cmat, self.fmat)
+        assert winner == 'aap'
+        assert 'ap' in corrs
+        assert 'as' in corrs
 
     def test_amat_prunes_the_self_loop (self):
         paths = dw.find_paths(self.chat, self.yhats, self.vmat, amat=self.amat,

@@ -224,7 +224,7 @@ def select_path (paths, gold, cmat, fmat, gram=None):
         gram = infer_gram(cues)
     forms = [_concat_selected(p, overlap=True).strip('#') for p in paths]
     forms = list(dict.fromkeys(forms))
-    cmat_cand = cmat.sel({'word': forms})
+    cmat_cand = gen_cmat(forms, gram=gram, cues=cues)
     shat_cand = cmat_cand @ fmat
     gold = np.array(gold).ravel()
     corrs = {f: float(np.corrcoef(s, gold)[0, 1]) for f, s in zip(forms, shat_cand)}
