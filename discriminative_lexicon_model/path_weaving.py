@@ -228,7 +228,11 @@ def select_path (paths, gold, cmat, fmat, gram=None):
     shat_cand = cmat_cand @ fmat
     gold = np.array(gold).ravel()
     corrs = {f: float(np.corrcoef(s, gold)[0, 1]) for f, s in zip(forms, shat_cand)}
-    winner = max(corrs, key=corrs.get)
+    valid = {f: c for f, c in corrs.items() if not np.isnan(c)}
+    if len(valid) == 0:
+        winner = ''
+    else:
+        winner = max(valid, key=valid.get)
     return winner, corrs
 
 def weave (gold, cmat, fmat, chat, yhats, vmat, word=None, amat=None,
